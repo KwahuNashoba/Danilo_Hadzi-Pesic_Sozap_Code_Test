@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d51cd491934a4d14eb28a00703d19413, type: 3}
+  m_Name: DefaultTileset
+  m_EditorClassIdentifier: 
+  Wall: {fileID: 11400000, guid: c8dc702942535a2498fe8ca06cf9f0a1, type: 2}
+  Walkable: {fileID: 11400000, guid: 0012b9452b60dda4f9b39ddf8f6950f7, type: 2}
+  BoxHolder: {fileID: 11400000, guid: e5080991b1287f24295766e875ca9a02, type: 2}

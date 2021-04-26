@@ -40,7 +40,7 @@ public class LevelGenerator : MonoBehaviour
 
     private void FocusCameraOnLevel(LevelConfig levelConfig)
     {
-        var collisionList = new List<Vector2Int>(levelConfig.Collision);
+        var collisionList = new List<Vector2>(levelConfig.Collision);
         var levelWidth = collisionList.Max(p => p.x) + 1;
         var levelHeight = collisionList.Max(p => p.y) + 1;
 

@@ -3,26 +3,27 @@ using UnityEngine;
 
 public class GameState
 {
-    public HashSet<Vector2Int> Collision { get; }
-    public HashSet<Vector2Int> BoxHolders { get; }
-    public HashSet<Vector2Int> Boxes { get; private set; }
-    public Vector2Int PlayerPosition { get; private set; }
+    public HashSet<Vector2> Collision { get; }
+    public HashSet<Vector2> BoxHolders { get; }
+    public HashSet<Vector2> Boxes { get; private set; }
+    public Vector2 PlayerPosition { get; private set; }
+    public bool FinalGoalReached { get { return Boxes.IsSubsetOf(BoxHolders); } }
 
     public GameState(LevelConfig levelConfig)
     {
-        Collision = new HashSet<Vector2Int>(levelConfig.Collision);
-        BoxHolders = new HashSet<Vector2Int>(levelConfig.BoxHolders);
-        Boxes = new HashSet<Vector2Int>(levelConfig.Boxes);
+        Collision = new HashSet<Vector2>(levelConfig.Collision);
+        BoxHolders = new HashSet<Vector2>(levelConfig.BoxHolders);
+        Boxes = new HashSet<Vector2>(levelConfig.Boxes);
         PlayerPosition = levelConfig.StartPosition;
     }
 
-    public void MoveBox(Vector2Int from, Vector2Int direction)
+    public void MoveBox(Vector2 from, Vector2 direction)
     {
         Boxes.Remove(from);
         Boxes.Add(from + direction);
     }
 
-    public void MovePlayer(Vector2Int direction)
+    public void MovePlayer(Vector2 direction)
     {
         PlayerPosition += direction;
     }

@@ -284,7 +284,7 @@ GameObject:
   - component: {fileID: 358176677}
   - component: {fileID: 358176676}
   m_Layer: 0
-  m_Name: LevelGenerator
+  m_Name: Level
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -446,6 +446,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   levelGenerator: {fileID: 358176676}
+  boxImage: {fileID: 21300000, guid: daee3a9773b962046b94ce685a0933c5, type: 3}
+  playerPrefab: {fileID: 2774949924927786021, guid: aa8d3ed0a6d85874896532fa9759d825, type: 3}
 --- !u!4 &1932475794
 Transform:
   m_ObjectHideFlags: 0

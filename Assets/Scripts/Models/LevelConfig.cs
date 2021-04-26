@@ -3,9 +3,9 @@
 [System.Serializable]
 public class LevelConfig
 {
-    public Vector2Int[] Collision;
-    public Vector2Int[] Walkable;
-    public Vector2Int[] BoxHolders;
-    public Vector2Int[] Boxes;
-    public Vector2Int StartPosition;
+    public Vector2[] Collision;
+    public Vector2[] Walkable;
+    public Vector2[] BoxHolders;
+    public Vector2[] Boxes;
+    public Vector2 StartPosition;
 }

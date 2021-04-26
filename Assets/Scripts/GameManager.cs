@@ -14,41 +14,51 @@ public class GameManager : MonoBehaviour
     {
         var demoLevelConfig = new LevelConfig()
         {
-            Collision = new Vector2Int[]
+            Collision = new Vector2[]
             {
-                new Vector2Int(0, 0),
-                new Vector2Int(0, 1),
-                new Vector2Int(0, 2),
-                new Vector2Int(0, 3),
-                new Vector2Int(1, 3),
-                new Vector2Int(2, 3),
-                new Vector2Int(3, 3),
-                new Vector2Int(4, 3),
-                new Vector2Int(4, 2),
-                new Vector2Int(4, 1),
-                new Vector2Int(4, 0),
-                new Vector2Int(3, 0),
-                new Vector2Int(2, 0),
-                new Vector2Int(1, 0),
+                new Vector2(0, 0),
+                new Vector2(0, 1),
+                new Vector2(0, 2),
+                new Vector2(0, 3),
+                new Vector2(1, 3),
+                new Vector2(2, 3),
+                new Vector2(3, 3),
+                new Vector2(4, 3),
+                new Vector2(5, 3),
+                new Vector2(5, 2),
+                new Vector2(5, 1),
+                new Vector2(5, 0),
+                new Vector2(4, 0),
+                new Vector2(3, 0),
+                new Vector2(2, 0),
+                new Vector2(1, 0),
             },
-            Walkable = new Vector2Int[]
+
+            Walkable = new Vector2[]
             {
-                new Vector2Int(1, 1),
-                new Vector2Int(1, 2),
-                new Vector2Int(2, 1),
-                new Vector2Int(2, 2),
-                new Vector2Int(3, 1),
-                new Vector2Int(3, 2),
+                new Vector2(1, 1),
+                new Vector2(1, 2),
+                new Vector2(2, 1),
+                new Vector2(2, 2),
+                new Vector2(3, 1),
+                new Vector2(3, 2),
+                new Vector2(4, 1),
+                new Vector2(4, 2),
             },
-            BoxHolders = new Vector2Int[]
+
+            BoxHolders = new Vector2[]
             {
-                new Vector2Int(2,2)
+                new Vector2(4,2),
+                new Vector2(4,1)
             },
-            Boxes = new Vector2Int[]
+
+            Boxes = new Vector2[]
             {
-                new Vector2Int(2,1)
+                new Vector2(3,2),
+                new Vector2(3,1)
             },
-            StartPosition = new Vector2Int(1, 1)
+
+            StartPosition = new Vector2(1, 1)
         };
 
         InitializeLevel(demoLevelConfig);
@@ -71,8 +81,8 @@ public class GameManager : MonoBehaviour
                 levelGenerator.transform)
             .AddComponent<SpriteRenderer>();
             box.sprite = boxImage;
-            return new KeyValuePair<Vector2Int, Transform>(
-                new Vector2Int((int)box.transform.position.x, (int)box.transform.position.y),
+            return new KeyValuePair<Vector2, Transform>(
+                new Vector2(boxPosition.x, boxPosition.y),
                 box.transform);
         }).ToDictionary(x => x.Key,x => x.Value);
         Destroy(emptyBoxObject);

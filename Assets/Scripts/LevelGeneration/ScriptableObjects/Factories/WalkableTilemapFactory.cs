@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Linq;
+using UnityEngine;
 using UnityEngine.Tilemaps;
 
 [CreateAssetMenu(fileName = "WalkableTilesFactory", menuName = "Sozap Test/Walkable Tiles Factory")]
@@ -20,17 +21,17 @@ public class WalkableTilemapFactory : AbstractTilemapFactory
 
     private void PopulatePrimaryMap(LevelConfig levelConfig, LevelTiles spriteSet)
     {
-        foreach(var tilePosition in levelConfig.Walkable)
+        foreach(var tilePosition in levelConfig.Walkable.Select(p => new Vector3Int((int)p.x, (int)p.y, 0)))
         {
-            tilemap.SetTile((Vector3Int)tilePosition, spriteSet.Walkable);
+            tilemap.SetTile(tilePosition, spriteSet.Walkable);
         }
     }
 
     private void PopulateSecondaryMap(LevelConfig levelConfig, LevelTiles spriteSet)
     {
-        foreach (var tilePosition in levelConfig.BoxHolders)
+        foreach (var tilePosition in levelConfig.BoxHolders.Select(p => new Vector3Int((int)p.x, (int)p.y, 0)))
         {
-            secondaryTilemap.SetTile((Vector3Int)tilePosition, spriteSet.BoxHolder);
+            secondaryTilemap.SetTile(tilePosition, spriteSet.BoxHolder);
         }
     }
 }

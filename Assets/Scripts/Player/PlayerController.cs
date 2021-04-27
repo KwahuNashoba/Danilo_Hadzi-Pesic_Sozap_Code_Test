@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections;
 using UnityEngine;
-using static GameController;
+using static GameplayController;
 
 public class PlayerController : MonoBehaviour
 {

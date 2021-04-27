@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-public class GameState
+public class GameStateData
 {
     public HashSet<Vector2> Collision { get; }
     public HashSet<Vector2> BoxHolders { get; }
@@ -9,7 +9,7 @@ public class GameState
     public Vector2 PlayerPosition { get; private set; }
     public bool FinalGoalReached { get { return Boxes.IsSubsetOf(BoxHolders); } }
 
-    public GameState(LevelConfig levelConfig)
+    public GameStateData(LevelConfigData levelConfig)
     {
         Collision = new HashSet<Vector2>(levelConfig.Collision);
         BoxHolders = new HashSet<Vector2>(levelConfig.BoxHolders);

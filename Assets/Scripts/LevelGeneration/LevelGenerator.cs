@@ -25,7 +25,7 @@ public class LevelGenerator : MonoBehaviour
 
     private UnityEvent CleanMapEvent;
 
-    public void GenerateLevel(LevelConfig levelConfig)
+    public void GenerateLevel(LevelConfigData levelConfig)
     {
         ClearLevel();
         FocusCameraOnLevel(levelConfig);
@@ -38,7 +38,7 @@ public class LevelGenerator : MonoBehaviour
         }
     }
 
-    private void FocusCameraOnLevel(LevelConfig levelConfig)
+    private void FocusCameraOnLevel(LevelConfigData levelConfig)
     {
         var collisionList = new List<Vector2>(levelConfig.Collision);
         var levelWidth = collisionList.Max(p => p.x) + 1;

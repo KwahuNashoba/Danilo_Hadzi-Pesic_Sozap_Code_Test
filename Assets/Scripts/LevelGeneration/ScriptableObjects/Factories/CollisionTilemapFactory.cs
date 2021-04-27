@@ -10,7 +10,7 @@ public class CollisionTilemapFactory : AbstractTilemapFactory
         return "Walls";
     }
 
-    protected override void PopulateTilemap(LevelConfig levelConfig, LevelTiles spriteSet)
+    protected override void PopulateTilemap(LevelConfigData levelConfig, LevelTiles spriteSet)
     {
         foreach(var colliderPosition in levelConfig.Collision.Select(p => new Vector3Int((int)p.x, (int)p.y, 0)))
         {

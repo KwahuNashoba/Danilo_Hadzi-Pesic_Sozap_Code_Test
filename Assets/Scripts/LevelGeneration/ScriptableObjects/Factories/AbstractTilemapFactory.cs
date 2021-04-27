@@ -1,6 +1,6 @@
 ﻿public abstract class AbstractTilemapFactory : TilemapWriter
 {
-    public void WriteTiles(LevelConfig levelData, LevelTiles spriteSet)
+    public void WriteTiles(LevelConfigData levelData, LevelTiles spriteSet)
     {
         PopulateTilemap(levelData, spriteSet);
     }
@@ -10,5 +10,5 @@
         tilemap.ClearAllTiles(); 
     }
 
-    protected abstract void PopulateTilemap( LevelConfig levelConfig, LevelTiles spriteSet);
+    protected abstract void PopulateTilemap( LevelConfigData levelConfig, LevelTiles spriteSet);
 }

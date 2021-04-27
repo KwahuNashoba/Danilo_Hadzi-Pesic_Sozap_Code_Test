@@ -7,9 +7,12 @@ public abstract class TilemapWriter : ScriptableObject
 
     // used to initialize state of loaded scriptable objects because
     // they don't get to call constructors
-    public void Init(Transform parentGrid, GameObject tilemapTemplate)
+    public virtual void Init(Transform parentGrid, GameObject tilemapTemplate)
     {
-        tilemap = CreateTilemap(parentGrid, tilemapTemplate);
+        if(tilemap == null)
+        {
+            tilemap = CreateTilemap(parentGrid, tilemapTemplate);
+        }
     }
 
     public Tilemap CreateTilemap(Transform parentGrid, GameObject tilemapTemplate)

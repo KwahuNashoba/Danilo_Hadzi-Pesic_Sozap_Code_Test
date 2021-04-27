@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.InputSystem;
-using static DefaultInputActions;
+using UnityEngine.Events;
 
-public class GameController : IPlayerActions
+public class GameplayController
 {
     public enum ActionType
     {
@@ -12,33 +11,27 @@ public class GameController : IPlayerActions
         Push
     }
 
-    private HashSet<Vector2> ValidInputs = new HashSet<Vector2>(
-        new Vector2[]
-        {
-            new Vector2(0, 1),
-            new Vector2(1,0),
-            new Vector2(-1,0),
-            new Vector2(0,-1),
-        });
+    public UnityEvent LevelCompleted = new UnityEvent();
 
-    private GameState gameState;
+    private GameStateData gameState;
     private Dictionary<Vector2, Transform> boxGameObjects;
     private PlayerController playerController;
+    private PlayerInput controlls;
 
-    private DefaultInputActions  controlls;
-
-    public GameController(
-        LevelConfig levelConfig, 
+    public GameplayController(
+        LevelConfigData levelConfig, 
         Dictionary<Vector2, Transform> boxObjects,
-        PlayerController player
+        PlayerController player,
+        LevelScoreData levelScore,
+        PlayerInput playerControlls
     )
     {
-        gameState = new GameState(levelConfig);
+        gameState = new GameStateData(levelConfig);
         boxGameObjects = boxObjects;
         playerController = player;
 
-        controlls = new DefaultInputActions();
-        controlls.Player.SetCallbacks(this);
+        controlls = playerControlls;
+        controlls.SetMovementListener(MovePlayer);
         controlls.Enable();
     }
 
@@ -46,32 +39,26 @@ public class GameController : IPlayerActions
     /// Callback that gets triggered once the player performs movement input on device
     /// </summary>
     /// <param name="context"></param>
-    public void OnMove(InputAction.CallbackContext context)
-    {
-        // TODO: queue player inputs and process them consequentially...do you need this???
+    private void MovePlayer(Vector2 movementDirection)
+    {   
+        var actionType = DecodeInputAction(movementDirection);
 
-        if (context.action.phase == InputActionPhase.Performed)
+        if (actionType == ActionType.Forbiden) return;
+
+        // disable input until the current move is finished
+        controlls.Disable();
+
+        if (actionType == ActionType.Move)
         {
-            var movementDirection = context.action.ReadValue<Vector2>(); ;
-            var actionType = DecodeInputAction(movementDirection);
-
-            if (actionType == ActionType.Forbiden) return;
-
-            // disable input until the current move is finished
-            controlls.Disable();
-
-            if (actionType == ActionType.Move)
-            {
-                playerController.ExecuteAction(actionType, movementDirection, PlayerActionFinishedCallback);
-            }
-            else if (actionType == ActionType.Push)
-            {
-                playerController.ExecuteAction(
-                    actionType,
-                    movementDirection,
-                    PlayerActionFinishedCallback,
-                    boxGameObjects[gameState.PlayerPosition + movementDirection]);
-            }
+            playerController.ExecuteAction(actionType, movementDirection, OnPlayerActionFinished);
+        }
+        else if (actionType == ActionType.Push)
+        {
+            playerController.ExecuteAction(
+                actionType,
+                movementDirection,
+                OnPlayerActionFinished,
+                boxGameObjects[gameState.PlayerPosition + movementDirection]);
         }
     }
 
@@ -83,12 +70,6 @@ public class GameController : IPlayerActions
     private ActionType DecodeInputAction(Vector2 direction)
     {
         Vector2 destination = gameState.PlayerPosition + direction;
-
-        // check if the input direction is valid, at first
-        if(!ValidInputs.Contains(direction))
-        {
-            return ActionType.Forbiden;
-        }
 
         if (gameState.Collision.Contains(destination))
         {
@@ -127,7 +108,7 @@ public class GameController : IPlayerActions
     /// </summary>
     /// <param name="actionType"></param>
     /// <param name="direction"></param>
-    private void PlayerActionFinishedCallback(ActionType actionType, Vector2 direction)
+    private void OnPlayerActionFinished(ActionType actionType, Vector2 direction)
     {
         var inputDirection = new Vector2Int((int)direction.x, (int)direction.y);
         
@@ -159,7 +140,7 @@ public class GameController : IPlayerActions
     {
         if(gameState.FinalGoalReached)
         {
-
+            LevelCompleted?.Invoke();
         }
         else
         {

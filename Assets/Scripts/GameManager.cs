@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -7,72 +8,77 @@ public class GameManager : MonoBehaviour
     [SerializeField] private LevelGenerator levelGenerator = null;
     [SerializeField] private Sprite boxImage = null;
     [SerializeField] private GameObject playerPrefab = null;
+    [SerializeField] private GameSceneUiController uiController = null;
 
-    private GameController gameController;
+    private LevelConfigData currentLevelConfig;
+    private Dictionary<string, LevelConfigData> levelConfigs;
+
+    private PlayerInput inputControlls;
+    private GameplayController gameplayController;
+    private Coroutine timerCoroutine;
+
+    private Dictionary<Vector2, Transform> boxes;
+    private PlayerController playerController;
+
+    private LevelScoreData currentLevelScore;
+    private Dictionary<string, LevelScoreData> bestScores;
 
     void Start()
     {
-        var demoLevelConfig = new LevelConfig()
-        {
-            Collision = new Vector2[]
-            {
-                new Vector2(0, 0),
-                new Vector2(0, 1),
-                new Vector2(0, 2),
-                new Vector2(0, 3),
-                new Vector2(1, 3),
-                new Vector2(2, 3),
-                new Vector2(3, 3),
-                new Vector2(4, 3),
-                new Vector2(5, 3),
-                new Vector2(5, 2),
-                new Vector2(5, 1),
-                new Vector2(5, 0),
-                new Vector2(4, 0),
-                new Vector2(3, 0),
-                new Vector2(2, 0),
-                new Vector2(1, 0),
-            },
+        LoadLevelConfigs();
+        LoadBestScores();
+        currentLevelConfig = levelConfigs["1"];
+        inputControlls = new PlayerInput();
 
-            Walkable = new Vector2[]
-            {
-                new Vector2(1, 1),
-                new Vector2(1, 2),
-                new Vector2(2, 1),
-                new Vector2(2, 2),
-                new Vector2(3, 1),
-                new Vector2(3, 2),
-                new Vector2(4, 1),
-                new Vector2(4, 2),
-            },
-
-            BoxHolders = new Vector2[]
-            {
-                new Vector2(4,2),
-                new Vector2(4,1)
-            },
-
-            Boxes = new Vector2[]
-            {
-                new Vector2(3,2),
-                new Vector2(3,1)
-            },
-
-            StartPosition = new Vector2(1, 1)
-        };
-
-        InitializeLevel(demoLevelConfig);
+        InitializeUi();
     }
 
-    private void InitializeLevel(LevelConfig levelConfig)
-    { 
-        // initialize level layout
-        levelGenerator.GenerateLevel(levelConfig);
+    public LevelScoreData StartLevel()
+    {
+        InitializeLevel(currentLevelConfig);
+        ResetTimer();
 
-        // initialize boxes
+        return currentLevelScore;
+    }
+
+    public LevelScoreData ResetLevel()
+    {
+        InitializeLevel(currentLevelConfig);
+        ResetTimer();
+
+        return currentLevelScore;
+    }
+
+    private void InitializeLevel(LevelConfigData levelConfig)
+    { 
+        currentLevelScore = new LevelScoreData();
+        
+        levelGenerator.GenerateLevel(levelConfig);
+        InitializeBoxes(levelConfig);
+        InitializePlayer(levelConfig);
+        InitializeGamePlayController(levelConfig);
+    }
+
+    private void InitializeUi()
+    {
+        uiController.Init(this);
+    }
+
+    private void InitializeBoxes(LevelConfigData levelConfig)
+    {
+        // clean previous state
+        if(boxes != null)
+        {
+            foreach(var box in boxes)
+            {
+                Destroy(box.Value.gameObject);
+            }
+            boxes.Clear();
+        }
+
         // TODO: this could have been prefab instead of building it from code
         var emptyBoxObject = new GameObject("Box");
-        var boxes = levelConfig.Boxes.Select(boxPosition =>
+        boxes = levelConfig.Boxes.Select(boxPosition =>
         {
             var box = GameObject.Instantiate(
                 emptyBoxObject,
@@ -84,18 +90,91 @@ public class GameManager : MonoBehaviour
             return new KeyValuePair<Vector2, Transform>(
                 new Vector2(boxPosition.x, boxPosition.y),
                 box.transform);
-        }).ToDictionary(x => x.Key,x => x.Value);
-        Destroy(emptyBoxObject);
+        }).ToDictionary(x => x.Key, x => x.Value);
 
-        // initialize player
-        var player = GameObject.Instantiate(
+        Destroy(emptyBoxObject);
+    }
+
+    private void InitializePlayer(LevelConfigData levelConfig)
+    {
+        if(playerController != null)
+        {
+            DestroyImmediate(playerController.gameObject);
+        }
+
+        playerController = GameObject.Instantiate(
             playerPrefab,
             new Vector3(levelConfig.StartPosition.x, levelConfig.StartPosition.y, 0f),
             Quaternion.identity,
             levelGenerator.transform)
             .GetComponent<PlayerController>();
-            
+    }
 
-        gameController = new GameController(levelConfig, boxes, player);
+    private void InitializeGamePlayController(LevelConfigData levelConfig)
+    {
+        gameplayController =
+            new GameplayController(levelConfig, boxes, playerController, currentLevelScore, inputControlls);
+        gameplayController.LevelCompleted?.AddListener(OnLevelCompleted);
+    }
+
+    private void ResetTimer()
+    {
+        if(timerCoroutine != null)
+        {
+            StopCoroutine(timerCoroutine);
+        }
+        timerCoroutine = StartCoroutine(LevelTimer());
+    }
+
+    private IEnumerator LevelTimer()
+    {
+        currentLevelScore.CompletionTime = 0;
+        while (true)
+        {
+            currentLevelScore.CompletionTime += (long)(Time.deltaTime * 1000);
+            yield return null;
+        }
+    }
+
+    private void OnLevelCompleted()
+    {
+        StopCoroutine(timerCoroutine);
+        RegisterCurrentScore();
+    }
+
+    private void RegisterCurrentScore()
+    {
+        string levelId = currentLevelConfig.LevelId;
+
+        if(bestScores.TryGetValue(levelId, out LevelScoreData scoreData))
+        {
+            bestScores[levelId] = currentLevelScore.CompletionTime > scoreData.CompletionTime
+                ? currentLevelScore : scoreData;
+        }
+        else
+        {
+            bestScores[levelId] = currentLevelScore;
+        }
+
+        bestScores[levelId].TotalAttempts++;
+        SaveBestScores();
+    }
+
+    private void LoadLevelConfigs()
+    {
+        levelConfigs = Resources.LoadAll<TextAsset>("LevelConfigs").ToDictionary(
+            c => c.name, c => JsonUtility.FromJson<LevelConfigData>(c.text));
+    }
+
+    private void LoadBestScores()
+    {
+        bestScores = SimpleSaveSystem.LoadFromDrive<Dictionary<string, LevelScoreData>>(
+                typeof(LevelScoreData).Name)
+            ?? new Dictionary<string, LevelScoreData>();
+    }
+
+    private void SaveBestScores()
+    {
+        SimpleSaveSystem.SaveObjectToDisk(typeof(LevelScoreData).Name, bestScores);
     }
 }

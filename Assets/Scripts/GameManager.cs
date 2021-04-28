@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class GameManager : MonoBehaviour
 {
@@ -10,8 +11,12 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject playerPrefab = null;
     [SerializeField] private GameSceneUiController uiController = null;
 
+    public Dictionary<string, LevelScoreData> BestScores { get; private set; }
+    public Dictionary<string, LevelConfigData> LevelConfigs { get; private set; }
+
+    public UnityEvent<string> LevelCompleted = new UnityEvent<string>();
+    
     private LevelConfigData currentLevelConfig;
-    private Dictionary<string, LevelConfigData> levelConfigs;
 
     private PlayerInput inputControlls;
     private GameplayController gameplayController;
@@ -21,37 +26,37 @@ public class GameManager : MonoBehaviour
     private PlayerController playerController;
 
     private LevelScoreData currentLevelScore;
-    private Dictionary<string, LevelScoreData> bestScores;
 
     void Start()
     {
         LoadLevelConfigs();
         LoadBestScores();
-        currentLevelConfig = levelConfigs["1"];
         inputControlls = new PlayerInput();
 
         InitializeUi();
     }
 
-    public LevelScoreData StartLevel()
+    public LevelScoreData StartLevel(string levelId)
     {
-        InitializeLevel(currentLevelConfig);
-        ResetTimer();
+        if(LevelConfigs.TryGetValue(levelId, out LevelConfigData config))
+        {
+            currentLevelConfig = config;
+            InitializeLevel(currentLevelConfig);
+            ResetTimer();
+            RegisterLevelAttampt(currentLevelConfig);
+            return currentLevelScore;
+        }
+        else
+        {
+            // TODO: error handling
+            return null;
+        }
 
-        return currentLevelScore;
-    }
-
-    public LevelScoreData ResetLevel()
-    {
-        InitializeLevel(currentLevelConfig);
-        ResetTimer();
-
-        return currentLevelScore;
     }
 
     private void InitializeLevel(LevelConfigData levelConfig)
-    { 
-        currentLevelScore = new LevelScoreData();
+    {
+        currentLevelScore = new LevelScoreData() { LevelId = levelConfig.LevelId };
         
         levelGenerator.GenerateLevel(levelConfig);
         InitializeBoxes(levelConfig);
@@ -140,41 +145,61 @@ public class GameManager : MonoBehaviour
     {
         StopCoroutine(timerCoroutine);
         RegisterCurrentScore();
+
+        LevelCompleted?.Invoke(currentLevelConfig.LevelId);
     }
 
     private void RegisterCurrentScore()
     {
         string levelId = currentLevelConfig.LevelId;
 
-        if(bestScores.TryGetValue(levelId, out LevelScoreData scoreData))
+        if(BestScores.TryGetValue(levelId, out LevelScoreData scoreData))
         {
-            bestScores[levelId] = currentLevelScore.CompletionTime > scoreData.CompletionTime
-                ? currentLevelScore : scoreData;
+            BestScores[levelId].CompletionTime = currentLevelScore.CompletionTime < scoreData.CompletionTime
+                ? currentLevelScore.CompletionTime : scoreData.CompletionTime;
         }
         else
         {
-            bestScores[levelId] = currentLevelScore;
+            BestScores[levelId] = currentLevelScore;
         }
 
-        bestScores[levelId].TotalAttempts++;
+        SaveBestScores();
+    }
+
+    private void RegisterLevelAttampt(LevelConfigData levelConfig)
+    {
+        if(BestScores.TryGetValue(levelConfig.LevelId, out LevelScoreData score))
+        {
+            score.TotalAttempts++;
+        }
+        else
+        {
+            BestScores[levelConfig.LevelId] = new LevelScoreData()
+            {
+                LevelId = levelConfig.LevelId,
+                CompletionTime = float.MaxValue,
+                TotalAttempts = 1
+            };
+        }
+
         SaveBestScores();
     }
 
     private void LoadLevelConfigs()
     {
-        levelConfigs = Resources.LoadAll<TextAsset>("LevelConfigs").ToDictionary(
+        LevelConfigs = Resources.LoadAll<TextAsset>("LevelConfigs").ToDictionary(
             c => c.name, c => JsonUtility.FromJson<LevelConfigData>(c.text));
     }
 
     private void LoadBestScores()
     {
-        bestScores = SimpleSaveSystem.LoadFromDrive<Dictionary<string, LevelScoreData>>(
+        BestScores = SimpleSaveSystem.LoadFromDrive<Dictionary<string, LevelScoreData>>(
                 typeof(LevelScoreData).Name)
             ?? new Dictionary<string, LevelScoreData>();
     }
 
     private void SaveBestScores()
     {
-        SimpleSaveSystem.SaveObjectToDisk(typeof(LevelScoreData).Name, bestScores);
+        SimpleSaveSystem.SaveObjectToDisk(typeof(LevelScoreData).Name, BestScores);
     }
 }

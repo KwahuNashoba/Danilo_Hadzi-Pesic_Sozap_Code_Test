@@ -6,6 +6,7 @@ using UnityEngine.Events;
 
 public class GameManager : MonoBehaviour
 {
+
     [SerializeField] private LevelGenerator levelGenerator = null;
     [SerializeField] private Sprite boxImage = null;
     [SerializeField] private GameObject playerPrefab = null;
@@ -155,11 +156,13 @@ public class GameManager : MonoBehaviour
 
         if(BestScores.TryGetValue(levelId, out LevelScoreData scoreData))
         {
-            BestScores[levelId].CompletionTime = currentLevelScore.CompletionTime < scoreData.CompletionTime
+            scoreData.Completed = true;
+            scoreData.CompletionTime = currentLevelScore.CompletionTime < scoreData.CompletionTime
                 ? currentLevelScore.CompletionTime : scoreData.CompletionTime;
         }
         else
         {
+            currentLevelScore.Completed = true;
             BestScores[levelId] = currentLevelScore;
         }
 
@@ -178,7 +181,8 @@ public class GameManager : MonoBehaviour
             {
                 LevelId = levelConfig.LevelId,
                 CompletionTime = float.MaxValue,
-                TotalAttempts = 1
+                TotalAttempts = 1,
+                Completed = false
             };
         }
 
@@ -193,13 +197,14 @@ public class GameManager : MonoBehaviour
 
     private void LoadBestScores()
     {
-        BestScores = SimpleSaveSystem.LoadFromDrive<Dictionary<string, LevelScoreData>>(
-                typeof(LevelScoreData).Name)
+        string SavesPath = $"{Application.persistentDataPath}/{typeof(LevelScoreData).Name}.ssave";
+        BestScores = SimpleSaveSystem.LoadFromDrive<Dictionary<string, LevelScoreData>>(SavesPath)
             ?? new Dictionary<string, LevelScoreData>();
     }
 
     private void SaveBestScores()
     {
-        SimpleSaveSystem.SaveObjectToDisk(typeof(LevelScoreData).Name, BestScores);
+        string SavesPath = $"{Application.persistentDataPath}/{typeof(LevelScoreData).Name}.ssave";
+        SimpleSaveSystem.SaveObjectToDisk(SavesPath, BestScores);
     }
 }

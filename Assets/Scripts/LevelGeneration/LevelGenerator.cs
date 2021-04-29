@@ -41,11 +41,11 @@ public class LevelGenerator : MonoBehaviour
     private void FocusCameraOnLevel(LevelConfigData levelConfig)
     {
         var collisionList = new List<Vector2>(levelConfig.Collision);
-        var levelWidth = collisionList.Max(p => p.x) + 1;
-        var levelHeight = collisionList.Max(p => p.y) + 1;
+        var levelWidth = collisionList.Max(p => p.x);
+        var levelHeight = collisionList.Max(p => p.y);
 
-        Camera.main.transform.position = new Vector3(levelHeight / 2, levelWidth / 2, -1);
-        Camera.main.orthographicSize = levelWidth + 2;
+        Camera.main.transform.position = new Vector3(++levelWidth / 2f, levelHeight / 2, -1);
+        Camera.main.orthographicSize = levelWidth + 1;
     }
 
     private void ClearLevel()

@@ -11,6 +11,7 @@ public class GameSceneUiController : MonoBehaviour
     [SerializeField] private Button nextLevelButton = null;
     [SerializeField] private Button backButton = null;
     [SerializeField] private GameObject chooseLevelPopupTemplate = null;
+    [SerializeField] private GameObject onScreenControlls = null;
 
     private LevelScoreData currentLevelScore;
     private GameManager gameManager;
@@ -50,12 +51,20 @@ public class GameSceneUiController : MonoBehaviour
 
     private void OnPlayButtonClicked(string levelId)
     {
+
+#if UNITY_ANDROID || UNITY_IOS
+        onScreenControlls.SetActive(true);
+#endif
         currentLevelScore = gameManager.StartLevel(levelId);
         resetButton.gameObject.SetActive(true);
     }
 
     private void OnLevelCompleted(string levelId)
     {
+
+#if UNITY_ANDROID || UNITY_IOS
+        onScreenControlls.SetActive(false);
+#endif
         nextLevelId = (int.Parse(levelId) + 1).ToString();
         if (gameManager.LevelConfigs.Keys.Where(key => int.Parse(key) >= int.Parse(nextLevelId)).Any())
         {
@@ -69,6 +78,9 @@ public class GameSceneUiController : MonoBehaviour
 
     private void OnNextLevelClicked()
     {
+#if UNITY_ANDROID || UNITY_IOS
+        onScreenControlls.SetActive(true);
+#endif
         currentLevelScore = gameManager.StartLevel((int.Parse(nextLevelId)).ToString());
         nextLevelButton.gameObject.SetActive(false);
     }

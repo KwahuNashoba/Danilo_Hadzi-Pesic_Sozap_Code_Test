@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
@@ -26,7 +27,26 @@ public class ChooseLevelPopupUiController : MonoBehaviour
         gameManager = manager;
 
         levelsDropdown.ClearOptions();
-        levelsDropdown.AddOptions(gameManager.LevelConfigs.Select(c => $"Level {c.Value.LevelId}").ToList());
+
+        // TODO: I definitley need level/score manager
+
+        var availableLevels = gameManager.BestScores
+            .Where(score => score.Value.Completed).ToList();
+        if(availableLevels.Any())
+        {
+            levelsDropdown.AddOptions(availableLevels
+                .Select(c => $"Level {c.Value.LevelId}").ToList());
+            var lastCompletedLevelId = int.Parse(availableLevels.Last().Value.LevelId);
+            if (gameManager.LevelConfigs.Keys.Where(key => int.Parse(key) >= lastCompletedLevelId + 1).Any())
+            {
+                levelsDropdown.AddOptions(new List<string>(){ $"Level {lastCompletedLevelId + 1}"});
+            }
+        }
+        else
+        {
+            levelsDropdown.AddOptions(new List<string> { "Level 1" });
+        }
+
         levelsDropdown.onValueChanged.AddListener(OnLevelSelected);
 
         // select next unfinished level
@@ -47,7 +67,10 @@ public class ChooseLevelPopupUiController : MonoBehaviour
         string totalAttempts = "N/A";
         if(gameManager.BestScores.TryGetValue(levelId, out LevelScoreData score))
         {
-            bestTime = new TimeSpan((long)(score.CompletionTime * 10000)).ToString(@"mm\:ss");
+            if(score.Completed)
+            {
+                bestTime = new TimeSpan((long)(score.CompletionTime * 10000)).ToString(@"mm\:ss");
+            }
             totalAttempts = score.TotalAttempts.ToString();
         }
 

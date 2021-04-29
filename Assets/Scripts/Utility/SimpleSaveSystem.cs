@@ -4,9 +4,8 @@ using UnityEngine;
 
 public static class SimpleSaveSystem
 {    
-    public static void SaveObjectToDisk<T>(string filename, T targetObject)
+    public static void SaveObjectToDisk<T>(string path, T targetObject)
     {
-        var path = $"{Application.persistentDataPath}/{filename}.ssave";
         BinaryFormatter binaryFormatter = new BinaryFormatter();
         FileStream fileStream = File.OpenWrite(path);
         binaryFormatter.Serialize(fileStream, targetObject);
@@ -14,9 +13,8 @@ public static class SimpleSaveSystem
         fileStream.Close();
     }
 
-    public static T LoadFromDrive<T>(string filename)
+    public static T LoadFromDrive<T>(string path)
     {
-        var path = $"{Application.persistentDataPath}/{filename}.ssave";
         if (File.Exists(path))
         {
             BinaryFormatter binaryFormatter = new BinaryFormatter();
